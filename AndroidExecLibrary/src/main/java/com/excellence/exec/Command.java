@@ -120,7 +120,7 @@ public class Command {
                     if (listener != null) {
                         listener.onError(t);
                     }
-                    schedule();
+                    remove(CommandTask.this);
                 }
 
                 @Override
