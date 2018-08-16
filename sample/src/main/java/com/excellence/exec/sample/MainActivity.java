@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.excellence.exec.Command.CommandTask;
 import com.excellence.exec.Commander;
 import com.excellence.exec.IListener;
 
@@ -17,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Commander.init();
-        Commander.addTask("ls", new IListener() {
+        final CommandTask task = Commander.addTask("ls", new IListener() {
             @Override
             public void onPre(String command) {
                 Log.i(TAG, "onPre: " + command);
@@ -38,5 +39,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "onSuccess: " + message);
             }
         });
+        // task.discard();
     }
 }

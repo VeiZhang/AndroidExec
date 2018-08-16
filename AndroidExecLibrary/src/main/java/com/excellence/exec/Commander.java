@@ -71,6 +71,11 @@ public class Commander {
         return null;
     }
 
+    public static void destory() {
+        checkCommander();
+        mInstance.mCommand.clearAll();
+    }
+
     private static void checkCommander() {
         if (mInstance == null) {
             throw new RuntimeException("Commander not initialized!!!");

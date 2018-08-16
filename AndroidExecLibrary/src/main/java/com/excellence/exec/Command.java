@@ -53,7 +53,7 @@ public class Command {
         // count running task
         int runningTaskCount = 0;
         for (CommandTask task : mTaskQueue) {
-            if (task.isRunning) {
+            if (task.isRunning()) {
                 runningTaskCount++;
             }
         }
@@ -87,9 +87,14 @@ public class Command {
 
     public class CommandTask {
 
+        private static final int STATUS_WAITING = 0;
+        private static final int STATUS_FINISHED = 1;
+        private static final int STATUS_RUNNING = 2;
+        private static final int STATUS_INTERRUPT = 3;
+
         private List<String> mCommand = null;
         private Process mProcess = null;
-        private boolean isRunning = false;
+        private int mStatus = STATUS_WAITING;
         private IListener mIListener = null;
 
         private CommandTask(List<String> command, final IListener listener) {
@@ -111,7 +116,7 @@ public class Command {
 
                 @Override
                 public void onError(Throwable t) {
-                    isRunning = false;
+                    mStatus = STATUS_FINISHED;
                     if (listener != null) {
                         listener.onError(t);
                     }
@@ -120,7 +125,7 @@ public class Command {
 
                 @Override
                 public void onSuccess(String message) {
-                    isRunning = false;
+                    mStatus = STATUS_FINISHED;
                     if (listener != null) {
                         listener.onSuccess(message);
                     }
@@ -131,10 +136,14 @@ public class Command {
 
         void deploy() {
             try {
-                isRunning = true;
+                mStatus = STATUS_RUNNING;
                 Observable.create(new ObservableOnSubscribe<String>() {
                     @Override
                     public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                        if (mStatus == STATUS_INTERRUPT) {
+                            return;
+                        }
+
                         StringBuilder cmd = new StringBuilder();
                         for (String item : mCommand) {
                             cmd.append(item).append(" ");
@@ -145,28 +154,36 @@ public class Command {
                         BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
                         StringBuilder result = new StringBuilder();
                         String line = null;
-                        while ((line = stdin.readLine()) != null) {
+                        while ((line = stdin.readLine()) != null && mStatus != STATUS_INTERRUPT) {
                             mIListener.onProgress(line);
                             result.append(line);
                         }
                         stdin.close();
 
-                        mIListener.onSuccess(result.toString());
+                        if (mStatus != STATUS_INTERRUPT) {
+                            mIListener.onSuccess(result.toString());
+                        }
                     }
-                }).observeOn(Schedulers.io()).subscribe();
+                }).subscribeOn(Schedulers.io()).subscribe();
             } catch (Exception e) {
                 mIListener.onError(e);
             }
         }
 
         private void cancel() {
+            mStatus = STATUS_INTERRUPT;
             if (mProcess != null) {
                 mProcess.destroy();
             }
             mTaskQueue.remove(this);
         }
 
+        private boolean isRunning() {
+            return mStatus == STATUS_RUNNING;
+        }
+
         public void discard() {
+            mStatus = STATUS_INTERRUPT;
             if (mProcess != null) {
                 mProcess.destroy();
             }
