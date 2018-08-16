@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.excellence.exec.Command.CommandTask;
 import com.excellence.exec.Commander;
+import com.excellence.exec.CommanderOptions;
 import com.excellence.exec.IListener;
 
 public class MainActivity extends AppCompatActivity {
@@ -17,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Commander.init();
+        Commander.init(new CommanderOptions.Builder().setTimeOut(1).build());
         final CommandTask task = Commander.addTask("ls", new IListener() {
             @Override
             public void onPre(String command) {

@@ -30,22 +30,19 @@ public class Commander {
      * 默认：不限制并发线程数；指令超时10s终止
      */
     public static void init() {
-        init(Integer.MAX_VALUE, DEFAULT_TIME_OUT);
+        init(new CommanderOptions.Builder().setParallelTaskCount(Integer.MAX_VALUE).setTimeOut(DEFAULT_TIME_OUT).build());
     }
 
     /**
      * 初始化
-     *
-     * @param parallelTaskCount 并发线程数
-     * @param timeOut 执行命令超时时间（存在某些命令会需要人为输入确认，此时命令会一直卡住等待），默认10s超时，终止指令
      */
-    public static void init(int parallelTaskCount, int timeOut) {
+    public static void init(CommanderOptions options) {
         if (mInstance != null) {
             Log.i(TAG, "Commander initialized!!!");
             return;
         }
         mInstance = new Commander();
-        mInstance.mCommand = new Command(parallelTaskCount, timeOut);
+        mInstance.mCommand = new Command(options);
     }
 
     private Commander() {
@@ -67,7 +64,8 @@ public class Commander {
         return addTask(new String[]{command}, listener);
     }
 
-    public static CommandTask addUniqueTask() {
+    public static CommandTask addUniqueTask(@NonNull String command, IListener listener) {
+        checkCommander();
         return null;
     }
 

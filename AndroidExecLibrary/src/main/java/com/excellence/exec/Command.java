@@ -28,13 +28,13 @@ public class Command {
     private int mParallelTaskCount = 0;
     private int mTimeOut = 0;
 
-    protected Command(int parallelTaskCount, int timeOut) {
+    protected Command(CommanderOptions options) {
         mTaskQueue = new LinkedList<>();
-        mParallelTaskCount = parallelTaskCount;
+        mParallelTaskCount = options.mParallelTaskCount;
         if (mParallelTaskCount <= 0) {
             mParallelTaskCount = Integer.MAX_VALUE;
         }
-        mTimeOut = timeOut;
+        mTimeOut = options.mTimeOut;
         if (mTimeOut <= 0) {
             mTimeOut = DEFAULT_TIME_OUT;
         }
