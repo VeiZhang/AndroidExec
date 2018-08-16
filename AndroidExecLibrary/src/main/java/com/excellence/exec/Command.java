@@ -136,6 +136,10 @@ public class Command {
 
         void deploy() {
             try {
+                // only wait task can deploy
+                if (mStatus != STATUS_WAITING) {
+                    return;
+                }
                 mStatus = STATUS_RUNNING;
                 Observable.create(new ObservableOnSubscribe<String>() {
                     @Override
@@ -170,16 +174,16 @@ public class Command {
             }
         }
 
+        private boolean isRunning() {
+            return mStatus == STATUS_RUNNING;
+        }
+
         private void cancel() {
             mStatus = STATUS_INTERRUPT;
             if (mProcess != null) {
                 mProcess.destroy();
             }
             mTaskQueue.remove(this);
-        }
-
-        private boolean isRunning() {
-            return mStatus == STATUS_RUNNING;
         }
 
         public void discard() {
