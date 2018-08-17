@@ -59,9 +59,17 @@ public class Commander {
         return addTask(Arrays.asList(command), listener);
     }
 
+    /**
+     * 字符串命令，参数请以空格分隔
+     *
+     * @param command
+     * @param listener
+     * @return
+     */
     public static CommandTask addTask(@NonNull String command, IListener listener) {
         checkCommander();
-        return addTask(new String[]{command}, listener);
+        String[] cmd = command.split(" ");
+        return addTask(cmd, listener);
     }
 
     public static CommandTask addUniqueTask(@NonNull String command, IListener listener) {
