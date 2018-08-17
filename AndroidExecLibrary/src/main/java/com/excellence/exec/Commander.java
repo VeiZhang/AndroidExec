@@ -72,11 +72,6 @@ public class Commander {
         return addTask(cmd, listener);
     }
 
-    public static CommandTask addUniqueTask(@NonNull String command, IListener listener) {
-        checkCommander();
-        return null;
-    }
-
     public static void destory() {
         checkCommander();
         mInstance.mCommand.clearAll();
