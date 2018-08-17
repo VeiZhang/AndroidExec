@@ -4,10 +4,13 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -96,6 +99,8 @@ public class Command {
         private Process mProcess = null;
         private int mStatus = STATUS_WAITING;
         private IListener mIListener = null;
+        private Disposable mTimer = null;
+        private String mCmd = null;
 
         private CommandTask(List<String> command, final IListener listener) {
             mCommand = command;
@@ -116,10 +121,12 @@ public class Command {
 
                 @Override
                 public void onError(Throwable t) {
-                    mStatus = STATUS_FINISHED;
-                    if (listener != null) {
-                        listener.onError(t);
+                    if (mStatus != STATUS_INTERRUPT) {
+                        if (listener != null) {
+                            listener.onError(t);
+                        }
                     }
+                    mStatus = STATUS_FINISHED;
                     remove(CommandTask.this);
                 }
 
@@ -152,19 +159,24 @@ public class Command {
                         for (String item : mCommand) {
                             cmd.append(item).append(" ");
                         }
-                        mIListener.onPre(cmd.toString());
+                        mCmd = cmd.toString();
+                        mIListener.onPre(mCmd);
+                        restartTimer();
                         mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
                         BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
                         StringBuilder result = new StringBuilder();
                         String line = null;
-                        while ((line = stdin.readLine()) != null && mStatus != STATUS_INTERRUPT) {
-                            mIListener.onProgress(line);
-                            result.append(line);
+                        while (mStatus == STATUS_RUNNING && (line = stdin.readLine()) != null) {
+                            if (mStatus == STATUS_RUNNING) {
+                                restartTimer();
+                                mIListener.onProgress(line);
+                                result.append(line);
+                            }
                         }
                         stdin.close();
-
-                        if (mStatus != STATUS_INTERRUPT) {
+                        resetTimer();
+                        if (mStatus == STATUS_RUNNING) {
                             mIListener.onSuccess(result.toString());
                         }
                     }
@@ -174,23 +186,34 @@ public class Command {
             }
         }
 
+        private void resetTimer() {
+            if (mTimer != null && !mTimer.isDisposed()) {
+                mTimer.dispose();
+            }
+        }
+
+        private void restartTimer() {
+            resetTimer();
+            mTimer = Observable.timer(mTimeOut, TimeUnit.MILLISECONDS).subscribe(new Consumer<Long>() {
+                @Override
+                public void accept(Long aLong) throws Exception {
+                    mIListener.onError(new Throwable("Time out : " + mCmd));
+                    discard();
+                }
+            });
+        }
+
         private boolean isRunning() {
             return mStatus == STATUS_RUNNING;
         }
 
         private void cancel() {
             mStatus = STATUS_INTERRUPT;
-            if (mProcess != null) {
-                mProcess.destroy();
-            }
             mTaskQueue.remove(this);
         }
 
         public void discard() {
             mStatus = STATUS_INTERRUPT;
-            if (mProcess != null) {
-                mProcess.destroy();
-            }
             remove(this);
         }
 

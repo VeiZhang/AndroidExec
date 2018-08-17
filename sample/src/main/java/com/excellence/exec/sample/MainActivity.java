@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Commander.init(new CommanderOptions.Builder().setTimeOut(1).build());
+        Commander.init(new CommanderOptions.Builder().setTimeOut(1000).build());
         final CommandTask task = Commander.addTask("ls", new IListener() {
             @Override
             public void onPre(String command) {
