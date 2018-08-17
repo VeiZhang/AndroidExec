@@ -1,9 +1,14 @@
 package com.excellence.exec;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -30,6 +35,7 @@ public class Command {
     private final LinkedList<CommandTask> mTaskQueue;
     private int mParallelTaskCount = 0;
     private int mTimeOut = 0;
+    private Executor mResponsePoster = null;
 
     protected Command(CommanderOptions options) {
         mTaskQueue = new LinkedList<>();
@@ -41,6 +47,14 @@ public class Command {
         if (mTimeOut <= 0) {
             mTimeOut = DEFAULT_TIME_OUT;
         }
+
+        final Handler handler = new Handler(Looper.getMainLooper());
+        mResponsePoster = new Executor() {
+            @Override
+            public void execute(@NonNull Runnable command) {
+                handler.post(command);
+            }
+        };
     }
 
     public CommandTask addTask(List<String> command, IListener listener) {
@@ -106,37 +120,57 @@ public class Command {
             mCommand = command;
             mIListener = new IListener() {
                 @Override
-                public void onPre(String command) {
-                    if (listener != null) {
-                        listener.onPre(command);
-                    }
-                }
-
-                @Override
-                public void onProgress(String message) {
-                    if (listener != null) {
-                        listener.onProgress(message);
-                    }
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    if (mStatus != STATUS_INTERRUPT) {
-                        if (listener != null) {
-                            listener.onError(t);
+                public void onPre(final String command) {
+                    mResponsePoster.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (listener != null) {
+                                listener.onPre(command);
+                            }
                         }
-                    }
-                    mStatus = STATUS_FINISHED;
-                    remove(CommandTask.this);
+                    });
                 }
 
                 @Override
-                public void onSuccess(String message) {
-                    mStatus = STATUS_FINISHED;
-                    if (listener != null) {
-                        listener.onSuccess(message);
-                    }
-                    remove(CommandTask.this);
+                public void onProgress(final String message) {
+                    mResponsePoster.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (listener != null) {
+                                listener.onProgress(message);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(final Throwable t) {
+                    mResponsePoster.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (mStatus != STATUS_INTERRUPT) {
+                                if (listener != null) {
+                                    listener.onError(t);
+                                }
+                            }
+                            mStatus = STATUS_FINISHED;
+                            remove(CommandTask.this);
+                        }
+                    });
+                }
+
+                @Override
+                public void onSuccess(final String message) {
+                    mResponsePoster.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            mStatus = STATUS_FINISHED;
+                            if (listener != null) {
+                                listener.onSuccess(message);
+                            }
+                            remove(CommandTask.this);
+                        }
+                    });
                 }
             };
         }
@@ -161,6 +195,7 @@ public class Command {
                         }
                         mCmd = cmd.toString();
                         mIListener.onPre(mCmd);
+
                         restartTimer();
                         mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
