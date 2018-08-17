@@ -207,13 +207,22 @@ public class Command {
             return mStatus == STATUS_RUNNING;
         }
 
+        private void killProcess() {
+            if (mProcess != null) {
+                // close stream
+                mProcess.destroy();
+            }
+        }
+
         private void cancel() {
             mStatus = STATUS_INTERRUPT;
+            killProcess();
             mTaskQueue.remove(this);
         }
 
         public void discard() {
             mStatus = STATUS_INTERRUPT;
+            killProcess();
             remove(this);
         }
 
