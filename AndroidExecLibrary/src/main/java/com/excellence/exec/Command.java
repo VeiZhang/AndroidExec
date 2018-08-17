@@ -215,7 +215,17 @@ public class Command {
                             mIListener.onSuccess(result.toString());
                         }
                     }
-                }).subscribeOn(Schedulers.io()).subscribe();
+                }).subscribeOn(Schedulers.io()).subscribe(new Consumer<String>() {
+                    @Override
+                    public void accept(String s) throws Exception {
+
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        mIListener.onError(throwable);
+                    }
+                });
             } catch (Exception e) {
                 mIListener.onError(e);
             }
