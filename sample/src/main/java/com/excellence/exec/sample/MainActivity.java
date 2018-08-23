@@ -30,11 +30,23 @@ public class MainActivity extends AppCompatActivity implements IListener {
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Commander.init(new CommanderOptions.Builder().setTimeOut(1000).build());
+                Commander.init(new CommanderOptions.Builder().timeOut(10000).build());
                 mTextView.setText("");
-                new CommandTask.Builder().command("ls").build().deploy(MainActivity.this);
+                /**
+                 * 5s超时
+                 */
+                final CommandTask task = new CommandTask.Builder().command("ls").timeDelay(5000).build();
+                task.deploy(MainActivity.this);
                 // final CommandTask task = Commander.addTask("ls", MainActivity.this);
-                // task.discard();
+                mButton.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        /**
+                         * 延时8s取消任务
+                         */
+                        task.discard();
+                    }
+                }, 8000);
             }
         });
 

@@ -14,8 +14,8 @@ implementation 'com.excellence:exec:_latestVersion'
 // 初始化，默认：不限制并发线程数；指令超时10s终止
 Commander.init();
 
-// 自定义初始化参数：超时1s终止
-Commander.init(new CommanderOptions.Builder().setTimeOut(1000).build())
+// 自定义初始化参数：限制同时进行10个任务，超时1s终止
+Commander.init(new CommanderOptions.Builder().parallelTaskCount(10).timeOut(1000).build())
 
 // 创建执行命令
 推荐方式：

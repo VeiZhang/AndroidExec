@@ -28,7 +28,7 @@ public class Commander {
      * 默认：不限制并发线程数；指令超时10s终止
      */
     public static void init() {
-        init(new CommanderOptions.Builder().setParallelTaskCount(Integer.MAX_VALUE).setTimeOut(DEFAULT_TIME_OUT).build());
+        init(new CommanderOptions.Builder().parallelTaskCount(Integer.MAX_VALUE).timeOut(DEFAULT_TIME_OUT).build());
     }
 
     /**

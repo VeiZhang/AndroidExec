@@ -27,7 +27,7 @@ public class CommanderOptions {
          *
          * @param parallelTaskCount 并发线程数
          */
-        public Builder setParallelTaskCount(int parallelTaskCount) {
+        public Builder parallelTaskCount(int parallelTaskCount) {
             mParallelTaskCount = parallelTaskCount;
             return this;
         }
@@ -36,7 +36,7 @@ public class CommanderOptions {
          *
          * @param timeOut ms:执行命令超时时间（存在某些命令会需要人为输入确认，此时命令会一直卡住等待），默认10s超时，终止指令
          */
-        public Builder setTimeOut(long timeOut) {
+        public Builder timeOut(long timeOut) {
             mTimeOut = timeOut;
             return this;
         }
