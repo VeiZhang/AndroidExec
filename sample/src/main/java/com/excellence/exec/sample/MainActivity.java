@@ -12,7 +12,7 @@ import com.excellence.exec.Commander;
 import com.excellence.exec.CommanderOptions;
 import com.excellence.exec.IListener;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -32,34 +32,35 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Commander.init(new CommanderOptions.Builder().setTimeOut(1000).build());
                 mTextView.setText("");
-                final CommandTask task = Commander.addTask("ls", new IListener() {
-                    @Override
-                    public void onPre(String command) {
-                        Log.i(TAG, "onPre: " + command);
-                        mTextView.append(command + "\n");
-                    }
-
-                    @Override
-                    public void onProgress(String message) {
-                        Log.i(TAG, "onProgress: " + message);
-                        mTextView.append(message + "\n");
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        t.printStackTrace();
-                        mTextView.setText("Error:" + t.getMessage());
-                    }
-
-                    @Override
-                    public void onSuccess(String message) {
-                        Log.i(TAG, "onSuccess: " + message);
-                        mTextView.append(message + "\n");
-                    }
-                });
+                new CommandTask.Builder().command("ls").build().deploy(MainActivity.this);
+                // final CommandTask task = Commander.addTask("ls", MainActivity.this);
                 // task.discard();
             }
         });
 
+    }
+
+    @Override
+    public void onPre(String command) {
+        Log.i(TAG, "onPre: " + command);
+        mTextView.append(command + "\n");
+    }
+
+    @Override
+    public void onProgress(String message) {
+        //Log.i(TAG, "onProgress: " + message);
+        mTextView.append(message + "\n");
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        t.printStackTrace();
+        mTextView.setText("Error:" + t.getMessage());
+    }
+
+    @Override
+    public void onSuccess(String message) {
+        Log.i(TAG, "onSuccess: " + message);
+        mTextView.append(message + "\n");
     }
 }

@@ -18,6 +18,10 @@ Commander.init();
 Commander.init(new CommanderOptions.Builder().setTimeOut(1000).build())
 
 // 创建执行命令
+推荐方式：
+new CommandTask.Builder().command("ls").build().deploy(Listener);
+
+丢弃方式：
 Commander.addTask("ls", new IListener() {
     @Override
     public void onPre(String command) {

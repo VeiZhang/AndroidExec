@@ -10,8 +10,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
@@ -43,7 +41,8 @@ public class CommandTask {
     private Process mProcess = null;
     private int mStatus = STATUS_WAITING;
     private CommandTaskListener mIListener = null;
-    private Disposable mTimer = null;
+    private Disposable mCommandTask = null;
+    private Disposable mTimerTask = null;
     private String mCmd = null;
 
     private CommandTask(Builder builder) {
@@ -155,9 +154,9 @@ public class CommandTask {
                 return;
             }
             mStatus = STATUS_RUNNING;
-            Observable.create(new ObservableOnSubscribe<String>() {
+            mCommandTask = Observable.timer(mTimeDelay, mTimeUnit).subscribeOn(Schedulers.io()).subscribe(new Consumer<Long>() {
                 @Override
-                public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                public void accept(Long aLong) throws Exception {
                     if (mStatus == STATUS_INTERRUPT) {
                         return;
                     }
@@ -188,11 +187,6 @@ public class CommandTask {
                         mIListener.onSuccess(result.toString());
                     }
                 }
-            }).subscribeOn(Schedulers.io()).subscribe(new Consumer<String>() {
-                @Override
-                public void accept(String s) throws Exception {
-
-                }
             }, new Consumer<Throwable>() {
                 @Override
                 public void accept(Throwable throwable) throws Exception {
@@ -205,14 +199,14 @@ public class CommandTask {
     }
 
     private void resetTimer() {
-        if (mTimer != null && !mTimer.isDisposed()) {
-            mTimer.dispose();
+        if (mTimerTask != null && !mTimerTask.isDisposed()) {
+            mTimerTask.dispose();
         }
     }
 
     private void restartTimer() {
         resetTimer();
-        mTimer = Observable.timer(mTimeOut, mTimeUnit).subscribe(new Consumer<Long>() {
+        mTimerTask = Observable.timer(mTimeOut, mTimeUnit).subscribe(new Consumer<Long>() {
             @Override
             public void accept(Long aLong) throws Exception {
                 mIListener.onError(new Throwable("Time out : " + mCmd));
@@ -229,6 +223,9 @@ public class CommandTask {
         if (mProcess != null) {
             // close stream
             mProcess.destroy();
+        }
+        if (mCommandTask != null && !mCommandTask.isDisposed()) {
+            mCommandTask.dispose();
         }
     }
 
