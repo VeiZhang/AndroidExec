@@ -200,7 +200,7 @@ public class CommandTask {
             @Override
             public void accept(Long aLong) throws Exception {
                 mIListener.onError(new Throwable("Time out : " + mCmd));
-                discard();
+                interrupt();
             }
         });
     }
@@ -224,6 +224,11 @@ public class CommandTask {
 
     private void remove() {
         mManager.remove(this);
+    }
+
+    private void interrupt() {
+        killProcess();
+        remove();
     }
 
     public void discard() {
