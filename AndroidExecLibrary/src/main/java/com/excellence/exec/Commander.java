@@ -3,8 +3,6 @@ package com.excellence.exec;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.excellence.exec.Command.CommandTask;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,15 +43,21 @@ public class Commander {
         mInstance.mCommand = new Command(options);
     }
 
+    protected static Command getCommand() {
+        return mInstance.mCommand;
+    }
+
     private Commander() {
 
     }
 
+    @Deprecated
     public static CommandTask addTask(@NonNull List<String> command, IListener listener) {
         checkCommander();
         return mInstance.mCommand.addTask(command, listener);
     }
 
+    @Deprecated
     public static CommandTask addTask(@NonNull String[] command, IListener listener) {
         checkCommander();
         return addTask(Arrays.asList(command), listener);
@@ -66,6 +70,7 @@ public class Commander {
      * @param listener
      * @return
      */
+    @Deprecated
     public static CommandTask addTask(@NonNull String command, IListener listener) {
         checkCommander();
         String[] cmd = command.split(" ");

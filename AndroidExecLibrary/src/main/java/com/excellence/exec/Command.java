@@ -4,19 +4,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * <pre>
@@ -26,7 +16,7 @@ import io.reactivex.schedulers.Schedulers;
  *     desc   :
  * </pre> 
  */
-public class Command {
+class Command {
 
     private static final String TAG = Command.class.getSimpleName();
 
@@ -57,13 +47,26 @@ public class Command {
         };
     }
 
-    public CommandTask addTask(List<String> command, IListener listener) {
-        CommandTask task = new CommandTask(command, listener);
+    protected int getTimeOut() {
+        return mTimeOut;
+    }
+
+    protected Executor getResponsePoster() {
+        return mResponsePoster;
+    }
+
+    @Deprecated
+    protected CommandTask addTask(List<String> command, IListener listener) {
+        CommandTask task = new CommandTask.Builder().command(command).build();
+        task.deploy(listener);
+        return task;
+    }
+
+    protected void addTask(CommandTask task) {
         synchronized (mTaskQueue) {
             mTaskQueue.add(task);
         }
         schedule();
-        return task;
     }
 
     private synchronized void schedule() {
@@ -88,8 +91,12 @@ public class Command {
         }
     }
 
-    private synchronized void remove(CommandTask task) {
+    protected synchronized void removeTask(CommandTask task) {
         mTaskQueue.remove(task);
+    }
+
+    protected synchronized void remove(CommandTask task) {
+        removeTask(task);
         schedule();
     }
 
@@ -102,174 +109,4 @@ public class Command {
         }
     }
 
-    public class CommandTask {
-
-        private static final int STATUS_WAITING = 0;
-        private static final int STATUS_FINISHED = 1;
-        private static final int STATUS_RUNNING = 2;
-        private static final int STATUS_INTERRUPT = 3;
-
-        private List<String> mCommand = null;
-        private Process mProcess = null;
-        private int mStatus = STATUS_WAITING;
-        private IListener mIListener = null;
-        private Disposable mTimer = null;
-        private String mCmd = null;
-
-        private CommandTask(List<String> command, final IListener listener) {
-            mCommand = command;
-            mIListener = new IListener() {
-                @Override
-                public void onPre(final String command) {
-                    mResponsePoster.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (listener != null) {
-                                listener.onPre(command);
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void onProgress(final String message) {
-                    mResponsePoster.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (listener != null) {
-                                listener.onProgress(message);
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(final Throwable t) {
-                    mResponsePoster.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (mStatus != STATUS_INTERRUPT) {
-                                if (listener != null) {
-                                    listener.onError(t);
-                                }
-                            }
-                            mStatus = STATUS_FINISHED;
-                            remove(CommandTask.this);
-                        }
-                    });
-                }
-
-                @Override
-                public void onSuccess(final String message) {
-                    mResponsePoster.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            mStatus = STATUS_FINISHED;
-                            if (listener != null) {
-                                listener.onSuccess(message);
-                            }
-                            remove(CommandTask.this);
-                        }
-                    });
-                }
-            };
-        }
-
-        void deploy() {
-            try {
-                // only wait task can deploy
-                if (mStatus != STATUS_WAITING) {
-                    return;
-                }
-                mStatus = STATUS_RUNNING;
-                Observable.create(new ObservableOnSubscribe<String>() {
-                    @Override
-                    public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                        if (mStatus == STATUS_INTERRUPT) {
-                            return;
-                        }
-
-                        StringBuilder cmd = new StringBuilder();
-                        for (String item : mCommand) {
-                            cmd.append(item).append(" ");
-                        }
-                        mCmd = cmd.toString();
-                        mIListener.onPre(mCmd);
-
-                        restartTimer();
-                        mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
-
-                        BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
-                        StringBuilder result = new StringBuilder();
-                        String line = null;
-                        while (mStatus == STATUS_RUNNING && (line = stdin.readLine()) != null) {
-                            if (mStatus == STATUS_RUNNING) {
-                                restartTimer();
-                                mIListener.onProgress(line);
-                                result.append(line);
-                            }
-                        }
-                        stdin.close();
-                        resetTimer();
-                        if (mStatus == STATUS_RUNNING) {
-                            mIListener.onSuccess(result.toString());
-                        }
-                    }
-                }).subscribeOn(Schedulers.io()).subscribe(new Consumer<String>() {
-                    @Override
-                    public void accept(String s) throws Exception {
-
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        mIListener.onError(throwable);
-                    }
-                });
-            } catch (Exception e) {
-                mIListener.onError(e);
-            }
-        }
-
-        private void resetTimer() {
-            if (mTimer != null && !mTimer.isDisposed()) {
-                mTimer.dispose();
-            }
-        }
-
-        private void restartTimer() {
-            resetTimer();
-            mTimer = Observable.timer(mTimeOut, TimeUnit.MILLISECONDS).subscribe(new Consumer<Long>() {
-                @Override
-                public void accept(Long aLong) throws Exception {
-                    mIListener.onError(new Throwable("Time out : " + mCmd));
-                    discard();
-                }
-            });
-        }
-
-        private boolean isRunning() {
-            return mStatus == STATUS_RUNNING;
-        }
-
-        private void killProcess() {
-            if (mProcess != null) {
-                // close stream
-                mProcess.destroy();
-            }
-        }
-
-        private void cancel() {
-            mStatus = STATUS_INTERRUPT;
-            killProcess();
-            mTaskQueue.remove(this);
-        }
-
-        public void discard() {
-            mStatus = STATUS_INTERRUPT;
-            killProcess();
-            remove(this);
-        }
-
-    }
 }

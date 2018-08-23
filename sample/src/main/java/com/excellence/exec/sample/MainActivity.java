@@ -7,7 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.excellence.exec.Command.CommandTask;
+import com.excellence.exec.CommandTask;
 import com.excellence.exec.Commander;
 import com.excellence.exec.CommanderOptions;
 import com.excellence.exec.IListener;
