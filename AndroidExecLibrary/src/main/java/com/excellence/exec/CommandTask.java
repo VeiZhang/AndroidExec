@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +71,7 @@ public class CommandTask {
         private long mTimeDelay = 0;
 
         /**
-         * 任务命令
+         * 任务命令：字符串列表形式
          *
          * @param command
          * @return
@@ -78,6 +79,21 @@ public class CommandTask {
         public Builder command(List<String> command) {
             mCommand = command;
             return this;
+        }
+
+        /**
+         * 任务命令：字符串、字符串数组形式
+         *
+         * @param command
+         * @return
+         */
+        public Builder command(String[] command) {
+            return command(Arrays.asList(command));
+        }
+
+        public Builder command(String command) {
+            String[] cmd = command.split(" ");
+            return command(cmd);
         }
 
         /**
