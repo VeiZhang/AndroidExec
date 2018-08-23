@@ -11,7 +11,7 @@ package com.excellence.exec;
 public class CommanderOptions {
 
     protected int mParallelTaskCount = 0;
-    protected int mTimeOut = 0;
+    protected long mTimeOut = 0;
 
     private CommanderOptions(Builder builder) {
         mParallelTaskCount = builder.mParallelTaskCount;
@@ -21,7 +21,7 @@ public class CommanderOptions {
     public static class Builder {
 
         private int mParallelTaskCount = 0;
-        private int mTimeOut = 0;
+        private long mTimeOut = 0;
 
         /**
          *
@@ -36,7 +36,7 @@ public class CommanderOptions {
          *
          * @param timeOut ms:执行命令超时时间（存在某些命令会需要人为输入确认，此时命令会一直卡住等待），默认10s超时，终止指令
          */
-        public Builder setTimeOut(int timeOut) {
+        public Builder setTimeOut(long timeOut) {
             mTimeOut = timeOut;
             return this;
         }

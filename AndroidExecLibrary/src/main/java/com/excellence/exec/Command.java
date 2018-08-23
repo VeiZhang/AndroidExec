@@ -24,7 +24,7 @@ class Command {
 
     private final LinkedList<CommandTask> mTaskQueue;
     private int mParallelTaskCount = 0;
-    private int mTimeOut = 0;
+    private long mTimeOut = 0;
     private Executor mResponsePoster = null;
 
     protected Command(CommanderOptions options) {
@@ -47,7 +47,7 @@ class Command {
         };
     }
 
-    protected int getTimeOut() {
+    protected long getTimeOut() {
         return mTimeOut;
     }
 

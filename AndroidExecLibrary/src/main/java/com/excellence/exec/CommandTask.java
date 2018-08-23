@@ -35,7 +35,9 @@ public class CommandTask {
     private Command mManager = null;
     private Executor mResponsePoster = null;
     private List<String> mCommand = null;
-    private int mTimeOut = 0;
+    private TimeUnit mTimeUnit = null;
+    private long mTimeOut = 0;
+    private long mTimeDelay = 0;
 
     private Process mProcess = null;
     private int mStatus = STATUS_WAITING;
@@ -43,12 +45,18 @@ public class CommandTask {
     private Disposable mTimer = null;
     private String mCmd = null;
 
-    private CommandTask(List<String> command, int timeOut) {
+    private CommandTask(Builder builder) {
         mManager = Commander.getCommand();
-        mCommand = command;
-        mTimeOut = timeOut;
+
+        mCommand = builder.mCommand;
+        mTimeUnit = builder.mTimeUnit;
+        mTimeOut = builder.mTimeOut;
         if (mTimeOut <= 0) {
             mTimeOut = mManager.getTimeOut();
+        }
+        mTimeDelay = builder.mTimeDelay;
+        if (mTimeDelay < 0) {
+            mTimeDelay = 0;
         }
         mResponsePoster = mManager.getResponsePoster();
         mIListener = new CommandTaskListener();
@@ -57,7 +65,9 @@ public class CommandTask {
     public static class Builder {
 
         private List<String> mCommand = null;
-        private int mTimeOut = 0;
+        private TimeUnit mTimeUnit = TimeUnit.MILLISECONDS;
+        private long mTimeOut = 0;
+        private long mTimeDelay = 0;
 
         /**
          * 任务命令
@@ -71,18 +81,40 @@ public class CommandTask {
         }
 
         /**
-         * 单独设置任务超时时间:ms
+         * 延时、超时的时间单位，默认:ms {@link TimeUnit#MILLISECONDS}
+         *
+         * @param timeUnit
+         * @return
+         */
+        public Builder timeUnit(TimeUnit timeUnit) {
+            mTimeUnit = timeUnit;
+            return this;
+        }
+
+        /**
+         * 单独设置任务超时时间，默认:10 * 1000ms {@link Command#DEFAULT_TIME_OUT}
          *
          * @param timeOut
          * @return
          */
-        public Builder timeOut(int timeOut) {
+        public Builder timeOut(long timeOut) {
             mTimeOut = timeOut;
             return this;
         }
 
+        /**
+         * 设置任务延时启动，默认:0ms
+         *
+         * @param timeDelay
+         * @return
+         */
+        public Builder timeDelay(long timeDelay) {
+            mTimeDelay = timeDelay;
+            return this;
+        }
+
         public CommandTask build() {
-            return new CommandTask(mCommand, mTimeOut);
+            return new CommandTask(this);
         }
     }
 
@@ -164,7 +196,7 @@ public class CommandTask {
 
     private void restartTimer() {
         resetTimer();
-        mTimer = Observable.timer(mTimeOut, TimeUnit.MILLISECONDS).subscribe(new Consumer<Long>() {
+        mTimer = Observable.timer(mTimeOut, mTimeUnit).subscribe(new Consumer<Long>() {
             @Override
             public void accept(Long aLong) throws Exception {
                 mIListener.onError(new Throwable("Time out : " + mCmd));
