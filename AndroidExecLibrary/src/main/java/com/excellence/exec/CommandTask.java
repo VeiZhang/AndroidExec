@@ -1,7 +1,5 @@
 package com.excellence.exec;
 
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Arrays;
@@ -150,7 +148,6 @@ public class CommandTask {
         try {
             // only wait task can deploy
             if (mStatus != STATUS_WAITING) {
-                Log.i(TAG, "deploy status is not STATUS_WAITING");
                 return;
             }
             mStatus = STATUS_RUNNING;
