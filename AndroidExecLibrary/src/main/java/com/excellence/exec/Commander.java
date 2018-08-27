@@ -77,7 +77,7 @@ public class Commander {
         return addTask(cmd, listener);
     }
 
-    public static void destory() {
+    public static void destroy() {
         checkCommander();
         mInstance.mCommand.clearAll();
     }

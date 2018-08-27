@@ -48,7 +48,7 @@ Commander.addTask("ls", new IListener() {
 CommandTask.discard()
 
 // 终止所有命令
-Commander.destory()
+Commander.destroy()
 ```
 
 ## Runtime
