@@ -82,7 +82,7 @@ public class Commander {
         mInstance.mCommand.clearAll();
     }
 
-    private static void checkCommander() {
+    protected static void checkCommander() {
         if (mInstance == null) {
             throw new RuntimeException("Commander not initialized!!!");
         }

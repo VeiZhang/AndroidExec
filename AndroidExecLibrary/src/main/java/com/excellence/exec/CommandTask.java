@@ -127,6 +127,7 @@ public class CommandTask {
         }
 
         public CommandTask build() {
+            Commander.checkCommander();
             return new CommandTask(this);
         }
     }
