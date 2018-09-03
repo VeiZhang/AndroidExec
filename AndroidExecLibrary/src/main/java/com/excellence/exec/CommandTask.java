@@ -172,7 +172,7 @@ public class CommandTask {
                     BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
                     StringBuilder result = new StringBuilder();
                     String line = null;
-                    while (mStatus == STATUS_RUNNING && (line = stdin.readLine()) != null) {
+                    while ((line = stdin.readLine()) != null) {
                         if (mStatus == STATUS_RUNNING) {
                             restartTimer();
                             mIListener.onProgress(line);
@@ -221,9 +221,6 @@ public class CommandTask {
         if (mProcess != null) {
             // close stream
             mProcess.destroy();
-        }
-        if (mCommandTask != null && !mCommandTask.isDisposed()) {
-            mCommandTask.dispose();
         }
     }
 
