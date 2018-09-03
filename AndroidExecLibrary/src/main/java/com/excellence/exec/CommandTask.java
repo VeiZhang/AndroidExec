@@ -146,54 +146,50 @@ public class CommandTask {
      * 执行命令，由{@link Command#schedule()}控制
      */
     void deploy() {
-        try {
-            // only wait task can deploy
-            if (mStatus != STATUS_WAITING) {
-                return;
-            }
-            mStatus = STATUS_RUNNING;
-            mCommandTask = Observable.timer(mTimeDelay, mTimeUnit).subscribeOn(Schedulers.io()).subscribe(new Consumer<Long>() {
-                @Override
-                public void accept(Long aLong) throws Exception {
-                    if (mStatus == STATUS_INTERRUPT) {
-                        return;
-                    }
-
-                    StringBuilder cmd = new StringBuilder();
-                    for (String item : mCommand) {
-                        cmd.append(item).append(" ");
-                    }
-                    mCmd = cmd.toString();
-                    mIListener.onPre(mCmd);
-
-                    restartTimer();
-                    mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
-
-                    BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
-                    StringBuilder result = new StringBuilder();
-                    String line = null;
-                    while ((line = stdin.readLine()) != null) {
-                        if (mStatus == STATUS_RUNNING) {
-                            restartTimer();
-                            mIListener.onProgress(line);
-                            result.append(line);
-                        }
-                    }
-                    stdin.close();
-                    resetTimer();
-                    if (mStatus == STATUS_RUNNING) {
-                        mIListener.onSuccess(result.toString());
-                    }
-                }
-            }, new Consumer<Throwable>() {
-                @Override
-                public void accept(Throwable throwable) throws Exception {
-                    mIListener.onError(throwable);
-                }
-            });
-        } catch (Exception e) {
-            mIListener.onError(e);
+        // only wait task can deploy
+        if (mStatus != STATUS_WAITING) {
+            return;
         }
+        mStatus = STATUS_RUNNING;
+        mCommandTask = Observable.timer(mTimeDelay, mTimeUnit).subscribeOn(Schedulers.io()).subscribe(new Consumer<Long>() {
+            @Override
+            public void accept(Long aLong) throws Exception {
+                if (mStatus == STATUS_INTERRUPT) {
+                    return;
+                }
+
+                StringBuilder cmd = new StringBuilder();
+                for (String item : mCommand) {
+                    cmd.append(item).append(" ");
+                }
+                mCmd = cmd.toString();
+                mIListener.onPre(mCmd);
+
+                restartTimer();
+                mProcess = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
+
+                BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
+                StringBuilder result = new StringBuilder();
+                String line = null;
+                while ((line = stdin.readLine()) != null) {
+                    if (mStatus == STATUS_RUNNING) {
+                        restartTimer();
+                        mIListener.onProgress(line);
+                        result.append(line);
+                    }
+                }
+                stdin.close();
+                resetTimer();
+                if (mStatus == STATUS_RUNNING) {
+                    mIListener.onSuccess(result.toString());
+                }
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                mIListener.onError(throwable);
+            }
+        });
     }
 
     private void resetTimer() {
@@ -218,9 +214,10 @@ public class CommandTask {
     }
 
     private void killProcess() {
+        resetTimer();
         if (mProcess != null) {
             // close stream
-            mProcess.destroy();
+            ProcessUtils.processDestroy(mProcess);
         }
     }
 
