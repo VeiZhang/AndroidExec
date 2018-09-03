@@ -21,10 +21,9 @@ public class ProcessUtils {
 
     public static void killProcess(@NonNull Process process) {
         int pid = getProcessId(process);
-        if (pid <= 0) {
-            return;
+        if (pid > 0) {
+            android.os.Process.killProcess(pid);
         }
-        android.os.Process.killProcess(pid);
         process.destroy();
     }
 
@@ -69,15 +68,8 @@ public class ProcessUtils {
         }
     }
 
-    public static void processDestroy(@NonNull Process process) {
-        try {
-            if (process.exitValue() != 0) {
-                closeStream(process);
-                killProcess(process);
-            }
-        } catch (Exception e) {
-            closeStream(process);
-            killProcess(process);
-        }
+    public static void destroyProcess(@NonNull Process process) {
+        closeStream(process);
+        killProcess(process);
     }
 }
