@@ -2,6 +2,7 @@ package com.excellence.exec;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -62,35 +63,46 @@ public class CommandTask {
 
     public static class Builder {
 
-        private List<String> mCommand = null;
+        private List<String> mCommand = new ArrayList<>();
         private TimeUnit mTimeUnit = TimeUnit.MILLISECONDS;
         private long mTimeOut = 0;
         private long mTimeDelay = 0;
 
         /**
-         * 任务命令：字符串列表形式
+         * 单个命令参数
          *
          * @param command
          * @return
          */
-        public Builder command(List<String> command) {
-            mCommand = command;
+        public Builder command(String command) {
+            mCommand.add(command);
+            return this;
+        }
+
+        /**
+         * 任务命令：字符串列表形式
+         *
+         * @param commands
+         * @return
+         */
+        public Builder commands(List<String> commands) {
+            mCommand.addAll(commands);
             return this;
         }
 
         /**
          * 任务命令：字符串、字符串数组形式
          *
-         * @param command
+         * @param commands
          * @return
          */
-        public Builder command(String[] command) {
-            return command(Arrays.asList(command));
+        public Builder commands(String[] commands) {
+            return commands(Arrays.asList(commands));
         }
 
-        public Builder command(String command) {
-            String[] cmd = command.split(" ");
-            return command(cmd);
+        public Builder commands(String command) {
+            String[] commands = command.split(" ");
+            return commands(commands);
         }
 
         /**

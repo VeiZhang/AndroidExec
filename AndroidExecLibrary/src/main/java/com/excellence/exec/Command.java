@@ -55,9 +55,16 @@ class Command {
         return mResponsePoster;
     }
 
+    /**
+     * @see CommandTask.Builder#build()
+     *
+     * @param command
+     * @param listener
+     * @return
+     */
     @Deprecated
     protected CommandTask addTask(List<String> command, IListener listener) {
-        CommandTask task = new CommandTask.Builder().command(command).build();
+        CommandTask task = new CommandTask.Builder().commands(command).build();
         task.deploy(listener);
         return task;
     }

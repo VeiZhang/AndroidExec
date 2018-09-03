@@ -51,12 +51,26 @@ public class Commander {
 
     }
 
+    /**
+     * @see CommandTask.Builder#build()
+     *
+     * @param command
+     * @param listener
+     * @return
+     */
     @Deprecated
     public static CommandTask addTask(@NonNull List<String> command, IListener listener) {
         checkCommander();
         return mInstance.mCommand.addTask(command, listener);
     }
 
+    /**
+     * @see CommandTask.Builder#build()
+     *
+     * @param command
+     * @param listener
+     * @return
+     */
     @Deprecated
     public static CommandTask addTask(@NonNull String[] command, IListener listener) {
         checkCommander();
@@ -64,6 +78,7 @@ public class Commander {
     }
 
     /**
+     * @see CommandTask.Builder#build()
      * 字符串命令，参数请以空格分隔
      *
      * @param command
