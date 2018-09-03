@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements IListener {
 
     private Button mButton = null;
     private TextView mTextView = null;
+    private CommandTask mTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,26 +28,26 @@ public class MainActivity extends AppCompatActivity implements IListener {
         mButton = (Button) findViewById(R.id.button);
         mTextView = (TextView) findViewById(R.id.text);
 
+        /**
+         * 默认10s超时
+         */
+        Commander.init(new CommanderOptions.Builder().timeOut(10000).build());
+
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Commander.init(new CommanderOptions.Builder().timeOut(10000).build());
                 mTextView.setText("");
+                if (mTask != null) {
+                    mTask.discard();
+                    mTask = null;
+                    return;
+                }
                 /**
-                 * 5s超时
+                 * 0s延时
                  */
-                final CommandTask task = new CommandTask.Builder().command("ls").timeDelay(5000).build();
-                task.deploy(MainActivity.this);
+                mTask = new CommandTask.Builder().command("top").timeDelay(0).build();
+                mTask.deploy(MainActivity.this);
                 // final CommandTask task = Commander.addTask("ls", MainActivity.this);
-                mButton.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        /**
-                         * 延时8s取消任务
-                         */
-                        task.discard();
-                    }
-                }, 8000);
             }
         });
 
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements IListener {
 
     @Override
     public void onProgress(String message) {
-        //Log.i(TAG, "onProgress: " + message);
+        // Log.i(TAG, "onProgress: " + message);
         mTextView.append(message + "\n");
     }
 
