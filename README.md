@@ -83,7 +83,8 @@ Process process = new ProcessBuilder("command").command("arg").redirectErrorStre
 
 | 版本 | 描述 |
 | --- | ---- |
-| [1.0.0][Exec1.0.0] | 集成命令行执行 **2017-8-17** |
+| [1.1.0][Exec1.1.0] | 使用Builder模式创建命令任务，修复崩溃异常 **2018-9-3** |
+| [1.0.0][Exec1.0.0] | 集成命令行执行 **2018-8-17** |
 
 <!-- 网站链接 -->
 
@@ -95,4 +96,5 @@ Process process = new ProcessBuilder("command").command("arg").redirectErrorStre
 
 <!-- 版本 -->
 
+[Exec1.1.0]:https://bintray.com/veizhang/maven/exec/1.1.0
 [Exec1.0.0]:https://bintray.com/veizhang/maven/exec/1.0.0
