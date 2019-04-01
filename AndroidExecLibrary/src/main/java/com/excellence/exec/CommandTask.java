@@ -49,9 +49,12 @@ public class CommandTask {
 
         mCommand = builder.mCommand;
         mTimeUnit = builder.mTimeUnit;
-        mTimeOut = builder.mTimeOut;
-        if (mTimeOut <= 0) {
-            mTimeOut = mManager.getTimeOut();
+        /**
+         * 单任务超时配置覆盖全局超时配置
+         */
+        mTimeOut = mManager.getTimeOut();
+        if (builder.isOverrideTimeOut) {
+            mTimeOut = builder.mTimeOut;
         }
         mTimeDelay = builder.mTimeDelay;
         if (mTimeDelay < 0) {
@@ -67,6 +70,7 @@ public class CommandTask {
         private TimeUnit mTimeUnit = TimeUnit.MILLISECONDS;
         private long mTimeOut = 0;
         private long mTimeDelay = 0;
+        private boolean isOverrideTimeOut = false;
 
         /**
          * 单个命令参数
@@ -123,13 +127,14 @@ public class CommandTask {
         }
 
         /**
-         * 单独设置任务超时时间，默认:10 * 1000ms {@link Command#DEFAULT_TIME_OUT}
+         * 单独设置任务超时时间
          *
          * @param timeOut
          * @return
          */
         public Builder timeOut(long timeOut) {
             mTimeOut = timeOut;
+            isOverrideTimeOut = true;
             return this;
         }
 
@@ -259,6 +264,11 @@ public class CommandTask {
 
     private void restartTimer() {
         resetTimer();
+        mTimerTask = null;
+        if (mTimeOut <= 0) {
+            return;
+        }
+
         mTimerTask = Observable.timer(mTimeOut, mTimeUnit).subscribe(new Consumer<Long>() {
             @Override
             public void accept(Long aLong) throws Exception {

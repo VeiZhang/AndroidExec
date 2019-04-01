@@ -6,8 +6,6 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.excellence.exec.Command.DEFAULT_TIME_OUT;
-
 /**
  * <pre>
  *     author : VeiZhang
@@ -20,12 +18,14 @@ public class Commander {
 
     private static final String TAG = Commander.class.getSimpleName();
 
+    private static final int DEFAULT_TIME_OUT = 10 * 1000;
+
     private static Commander mInstance = null;
 
     private Command mCommand = null;
 
     /**
-     * 默认：不限制并发线程数；指令超时10s终止
+     * 默认：不限制并发线程数；指令超时{@link Commander#DEFAULT_TIME_OUT}终止
      */
     public static void init() {
         init(new CommanderOptions.Builder().parallelTaskCount(Integer.MAX_VALUE).timeOut(DEFAULT_TIME_OUT).build());

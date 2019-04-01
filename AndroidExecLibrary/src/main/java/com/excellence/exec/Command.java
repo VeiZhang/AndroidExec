@@ -20,8 +20,6 @@ class Command {
 
     private static final String TAG = Command.class.getSimpleName();
 
-    protected static final int DEFAULT_TIME_OUT = 10 * 1000;
-
     private final LinkedList<CommandTask> mTaskQueue;
     private int mParallelTaskCount = 0;
     private long mTimeOut = 0;
@@ -34,9 +32,6 @@ class Command {
             mParallelTaskCount = Integer.MAX_VALUE;
         }
         mTimeOut = options.mTimeOut;
-        if (mTimeOut <= 0) {
-            mTimeOut = DEFAULT_TIME_OUT;
-        }
 
         final Handler handler = new Handler(Looper.getMainLooper());
         mResponsePoster = new Executor() {
