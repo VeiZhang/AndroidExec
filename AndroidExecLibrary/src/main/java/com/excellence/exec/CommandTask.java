@@ -96,10 +96,16 @@ public class CommandTask {
          * @param commands
          * @return
          */
-        public Builder commands(String[] commands) {
+        public Builder commands(String... commands) {
             return commands(Arrays.asList(commands));
         }
 
+        /**
+         * 任务命令：字符串带空格转字符串数组命令
+         *
+         * @param command
+         * @return
+         */
         public Builder commands(String command) {
             String[] commands = command.split(" ");
             return commands(commands);
@@ -145,7 +151,48 @@ public class CommandTask {
     }
 
     /**
-     * 添加到任务队列中
+     * 同步执行任务
+     *
+     * @return
+     */
+    public static String exec(String command) {
+        String[] commands = command.split(" ");
+        return exec(commands);
+    }
+
+    /**
+     * 同步执行任务
+     *
+     * @return
+     */
+    public static String exec(String... commands) {
+        return exec(Arrays.asList(commands));
+    }
+
+    /**
+     * 同步执行任务
+     *
+     * @return
+     */
+    public static String exec(List<String> commands) {
+        StringBuilder result = new StringBuilder();
+        try {
+            Process process = new ProcessBuilder(commands).redirectErrorStream(true).start();
+
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line = null;
+            while ((line = stdin.readLine()) != null) {
+                result.append(line);
+            }
+            stdin.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result.toString();
+    }
+
+    /**
+     * 添加到任务队列中，异步执行
      *
      * @param listener
      */
