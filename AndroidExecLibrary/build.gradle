@@ -75,7 +75,7 @@ publish {
     userOrg = org
     groupId = 'com.excellence'
     artifactId = 'exec'
-    publishVersion = '1.1.0'
+    publishVersion = '1.1.1'
     desc = 'android命令执行'
     website = 'https://github.com/VeiZhang/AndroidExec'
     licences = ['Apache-2.0']
