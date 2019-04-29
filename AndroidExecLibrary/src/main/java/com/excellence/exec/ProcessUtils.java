@@ -69,7 +69,6 @@ public class ProcessUtils {
     }
 
     public static void destroyProcess(@NonNull Process process) {
-        closeStream(process);
         killProcess(process);
     }
 }

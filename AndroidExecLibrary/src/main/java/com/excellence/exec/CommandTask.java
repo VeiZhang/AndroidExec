@@ -13,6 +13,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.excellence.exec.ProcessUtils.closeStream;
+
 /**
  * <pre>
  *     author : VeiZhang
@@ -235,14 +237,20 @@ public class CommandTask {
                 BufferedReader stdin = new BufferedReader(new InputStreamReader(mProcess.getInputStream()));
                 StringBuilder result = new StringBuilder();
                 String line = null;
-                while (mStatus == STATUS_RUNNING && (line = stdin.readLine()) != null) {
-                    if (mStatus == STATUS_RUNNING) {
-                        restartTimer();
-                        mIListener.onProgress(line);
-                        result.append(line);
+                try {
+                    while (mStatus == STATUS_RUNNING && (line = stdin.readLine()) != null) {
+                        if (mStatus == STATUS_RUNNING) {
+                            restartTimer();
+                            mIListener.onProgress(line);
+                            result.append(line);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    closeStream(mProcess);
+                    stdin.close();
                 }
-                stdin.close();
                 resetTimer();
                 if (mStatus == STATUS_RUNNING) {
                     mIListener.onSuccess(result.toString());
