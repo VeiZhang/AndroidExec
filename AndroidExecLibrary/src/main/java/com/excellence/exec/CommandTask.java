@@ -217,7 +217,7 @@ public class CommandTask {
             return;
         }
         mStatus = STATUS_RUNNING;
-        mCommandTask = Observable.timer(mTimeDelay, mTimeUnit).subscribeOn(Schedulers.io()).subscribe(new Consumer<Long>() {
+        mCommandTask = Observable.timer(mTimeDelay, mTimeUnit).observeOn(Schedulers.io()).subscribe(new Consumer<Long>() {
             @Override
             public void accept(Long aLong) throws Exception {
                 if (mStatus == STATUS_INTERRUPT) {
