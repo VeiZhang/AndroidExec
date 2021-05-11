@@ -27,12 +27,12 @@ publish {
     bintrayKey = key
     dryRun = false
     userOrg = org
-    groupId = bintray.groupId
+    groupId = 'com.excellence'
     artifactId = 'exec'
-    publishVersion = bintray.publishVersion
+    publishVersion = '1.1.2'
     desc = 'android命令执行'
-    website = bintray.website
-    licences = bintray.licences
+    website = 'https://github.com/VeiZhang/AndroidExec'
+    licences = ['Apache-2.0']
 }
 
 /**读取bintray.key文件的key**/

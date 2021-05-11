@@ -1,25 +1,16 @@
-def plugins = rootProject.ext.plugins
-def cfg = rootProject.ext.android
+apply from: 'https://gist.githubusercontent.com/VeiZhang/01779005843bc5b70b11551ca13c2ced/raw/0e9952dc36a8d5ae09282d0a983f1a3530bb8726/application.gradle'
+
 def libs = rootProject.ext.dependencies
 
-apply plugin: plugins.application
-
 android {
-    compileSdkVersion cfg.compileSdkVersion
     defaultConfig {
         applicationId "com.excellence.exec.sample"
-        minSdkVersion cfg.minSdkVersion
-        targetSdkVersion cfg.targetSdkVersion
-        versionCode cfg.versionCode
-        versionName cfg.versionName
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
+}
+
+configurations.all {
+    // 不使用缓存，使用仓库中最新的包
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
 dependencies {
@@ -29,5 +20,17 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation libs["appcompat-v7"]
     implementation libs["constraint-layout"]
+
+    /**可以使用远程库或者使用本地Module Library*/
+    /**远程库**/
+    // implementation 'com.excellence:exec:_latestVersion'
+    /**或者使用+，自动使用最新依赖包**/
+    // implementation 'com.excellence:exec:+'
+    /**本地Library**/
     implementation project(':AndroidExecLibrary')
+
+    /** Github packages **/
+//    implementation('com.excellence:exec:1.1.2') {
+//        changing = true
+//    }
 }
